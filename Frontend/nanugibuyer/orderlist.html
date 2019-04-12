@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Orderlist</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--===============================================================================================-->
+	<link rel="icon" type="image/png" href="images/icons/favicon.png"/>
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/themify/themify-icons.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/elegant-font/html-css/style.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animsition/css/animsition.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/slick/slick.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="css/util.css">
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+<!--===============================================================================================-->
+	<style>
+		.rating-stars ul {
+		list-style-type:none;
+		padding:0;
+		
+		-moz-user-select:none;
+		-webkit-user-select:none;
+		}
+		.rating-stars ul > li.star {
+		display:inline-block;
+		
+		}
+
+		.rating-stars ul > li.star > i.fa {
+		color:#ccc;
+		}
+
+		.rating-stars ul > li.star.hover > i.fa {
+		color:#FFCC36;
+		}
+
+		.rating-stars ul > li.star.selected > i.fa {
+		color:#FF912C;
+		}	
+	</style>
+<!--===============================================================================================-->
+	<script type="text/javascript" src="vendor/jquery/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="vendor/jquery/jquery.cookie.js"></script>
+<!--===============================================================================================-->
+	<script type="text/javascript" src="vendor/animsition/js/animsition.min.js"></script>
+<!--===============================================================================================-->
+	<script type="text/javascript" src="vendor/bootstrap/js/popper.js"></script>
+	<script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>
+<!--===============================================================================================-->
+	<script type="text/javascript" src="vendor/select2/select2.min.js"></script>
+<!--===============================================================================================-->
+	<script type="text/javascript" src="vendor/slick/slick.min.js"></script>
+	<script type="text/javascript" src="js/slick-custom.js"></script>
+<!--===============================================================================================-->
+	<script type="text/javascript" src="vendor/sweetalert/sweetalert.min.js"></script>
+	<script type="text/javascript">
+		$(".selection-1").select2({
+			minimumResultsForSearch: 20,
+			dropdownParent: $('#dropDownSelect1')
+		});
+
+		$(".selection-2").select2({
+			minimumResultsForSearch: 20,
+			dropdownParent: $('#dropDownSelect2')
+		});
+
+		$('document').ready(function() {
+			$('#stars li').on('mouseover', function(){
+				var onStar = parseInt($(this).data('value'), 10);
+
+				$(this).parent().children('li.star').each(function(e){
+					if (e < onStar) {
+						$(this).addClass('hover');
+					} else {
+						$(this).removeClass('hover');
+					}
+				});
+			}).on('mouseout', function(){
+				$(this).parent().children('li.star').each(function(e){
+					$(this).removeClass('hover');
+				});
+			});
+
+
+			$('#stars li a').on('click', function(){
+				var onStar = parseInt($(this).data('value'), 10);
+				var stars = $(this).parent().children('li.star');
+
+				for (i = 0; i < stars.length; i++) {
+					$(stars[i]).removeClass('selected');
+				}
+
+				for (i = 0; i < onStar; i++) {
+					$(stars[i]).addClass('selected');
+				}
+
+				var product_idx =  $('#stars input[type="htdden"]').val();
+				var ratingValue = parseInt($('#stars li.selected').last().data('value'), 10);
+
+				responseMessage(product_idx, ratingValue);
+			});
+			
+			function responseRating(product_idx, ratingValue) {
+				$.ajax({
+					url : "http://Nanugi00-env.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/buyer/rating",
+					data : {
+							"idx" : $.cookie('idx'),
+							"rating" : "[" + product_idx + ", "+ ratingValue +"]",
+							},
+					type : "POST",
+					success : function(request) {
+						location.href = "http://nanugibuyer.s3-website.ap-northeast-2.amazonaws.com/orderlist.html";
+					} 
+				});	
+			}
+
+			$.ajax({
+				url : "http://Nanugi00-env.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/buyer/orderlist",
+				data : {"idx" : $.cookie('idx')},
+				type : "POST", 
+				success : function(request) {
+					var oddata = request['orderlist'];
+					var pddata = request['product_info'];
+
+					var odjson = JSON.stringify(oddata).replace('[', "").replace(']', "").replace('},{', "}@{").split("@");
+					var pdjson = JSON.stringify(pddata).replace('[', "").replace(']', "").replace('},{', "}@{").split("@");
+
+					var row;
+					var order = JSON.parse(odjson[0]);
+					var prices = [];
+					var totalprice = 0;
+
+					row += '<tr class="table-head">';
+						row += '<th class="column-1">Date</th>';
+						row += '<th class="column-2">' + JSON.stringify(order['order_date']).replace(/"/gi, '') + '</th>';
+						row += '<th class="column-3"></th>';
+						row += '<th class="column-4"></th>';
+					row += '</tr>'
+
+					row += '<tr class="table-row" style="padding-top: 5px; padding-bottom: 5px;">';
+						row += '<th class="column-1"></th>';
+						row += '<th class="column-2">Product</th>';
+						row += '<th class="column-3">Price</th>';
+						row += '<th class="column-4">Quantity</th>';
+						row += '<th class="column-5" style="width: 15%;">Rating</th>';
+					row += '</tr>';
+					
+					var j = 1;
+
+					for(var i in pdjson) {
+						var product = JSON.parse(pdjson[i]);
+						totalprice += parseFloat(JSON.stringify(product['price']).replace(/"/gi, ''));
+
+						row += '<tr class="table-row">';
+							row += '<td class="column-1">';
+								row += '<div class="cart-img-product b-rad-4 o-f-hidden">';
+									row += '<img src=' + JSON.stringify(product['imUrl']) + 'alt="IMG-PRODUCT">';
+								row += '</div>';
+							row += '</td>';
+							row += '<td class="column-2">' + JSON.stringify(product['title']).replace(/"/gi, '') + '</td>';
+							row += '<td class="column-3">' + JSON.stringify(product['price']).replace(/"/gi, '') + '</td>';
+							row += '<td class="column-4">' + JSON.stringify(order['quantity']) + '</td>';
+							row += '<td class="column-5 rating-stars" style="width: 15%;">';
+								row += '<ul id="stars">';
+									row += '<input type="hidden" value="'+ product['asin'] +'">';
+									row += '<li class="star" data-value="1">';
+										row += '<i class="fa fa-star fa-fw"></i>';
+									row += '</li>';
+									row += '<li class="star" data-value="2">';
+										row += '<i class="fa fa-star fa-fw"></i>';
+									row += '</li>';
+									row += '<li class="star" data-value="3">';
+										row += '<i class="fa fa-star fa-fw"></i>';
+									row += '</li>';
+									row += '<li class="star" data-value="4">';
+										row += '<i class="fa fa-star fa-fw"></i>';
+									row += '</li>';
+									row += '<li class="star" data-value="5">';
+										row += '<i class="fa fa-star fa-fw"></i>';
+									row += '</li>';
+								row += '</ul>';
+							row += '</td>';
+						row += '</tr>';
+					}
+
+					row += '<tr class="table-row" style="padding-top: 5px; padding-bottom: 5px;">'
+						row += '<th class="column-1"></th>'
+						row += '<th class="column-2"></th>'
+						row += '<th class="column-3"></th>'
+						row += '<th class="column-4">Total</th>'
+						row += '<th class="column-5">' + totalprice + '</th>'
+					row += '</tr>'
+				
+					$('#totallist').html(row);
+				}
+			});
+
+		});
+
+	</script>
+	<!--===============================================================================================-->
+	<script src="js/main.js"></script>
+</head>
+<body>
+
+	<!-- Header -->
+	<header class="header1">
+		<!-- Header desktop -->
+		<div class="container-menu-header">
+
+			<div class="wrap_header">
+				<!-- Logo -->
+				<a href="home.html" class="logo">
+					<img src="images/icons/logo.png" alt="IMG-LOGO">
+				</a>
+
+				<!-- Menu -->
+				<div class="wrap_menu">
+					<nav class="menu">
+						<ul class="main_menu">
+							<li>
+								<a href="home.html">Home</a>
+							</li>
+							<li class="sale-noti">
+								<a href="product.html">Sale</a>
+							</li>
+
+							<li>
+								<a href="cart.html">Features</a>
+							</li>
+
+							<li>
+								<a href="blog.html">Blog</a>
+							</li>
+
+							<li>
+								<a href="about.html">About</a>
+							</li>
+
+							<li>
+								<a href="contact.html">Contact</a>
+							</li>
+						</ul>
+					</nav>
+				</div>
+
+				<!-- Header Icon -->
+				<div class="header-icons">
+					<a href="#" class="header-wrapicon1 dis-block" id="miniCartBtn">
+						<img src="images/icons/icon-header-01.png" class="header-icon1" alt="ICON">
+					</a>
+
+					<span class="linedivide1"></span>
+
+					<div class="header-wrapicon2">
+						<img src="images/icons/icon-header-02.png" class="header-icon1 js-show-header-dropdown" alt="ICON">
+						<span class="header-icons-noti">0</span>
+
+						<!-- Header cart noti -->
+						<div class="header-cart header-dropdown">
+							<ul class="header-cart-wrapitem">
+								<li class="header-cart-item">
+									<div class="header-cart-item-img">
+										<img src="images/item-cart-01.jpg" alt="IMG">
+									</div>
+
+									<div class="header-cart-item-txt">
+										<a href="#" class="header-cart-item-name" id="product-name">
+											White Shirt With Pleat Detail Back
+										</a>
+
+										<span class="header-cart-item-info">
+											1 x $19.00
+										</span>
+									</div>
+								</li>
+							</ul>
+
+							<div class="header-cart-total">
+								Total: $75.00
+							</div>
+
+							<div class="header-cart-buttons">
+								<div class="header-cart-wrapbtn">
+									<!-- Button -->
+									<a href="cart.html" class="flex-c-m size1 bg1 bo-rad-20 hov1 s-text1 trans-0-4">
+										View Cart
+									</a>
+								</div>
+
+								<div class="header-cart-wrapbtn">
+									<!-- Button -->
+									<a href="#" class="flex-c-m size1 bg1 bo-rad-20 hov1 s-text1 trans-0-4">
+										Check Out
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Header Mobile -->
+		<div class="wrap_header_mobile">
+			<!-- Logo moblie -->
+			<a href="index.html" class="logo-mobile">
+				<img src="images/icons/logo.png" alt="IMG-LOGO">
+			</a>
+
+			<!-- Button show menu -->
+			<div class="btn-show-menu">
+				<!-- Header Icon mobile -->
+				<div class="header-icons-mobile">
+					<a href="#" class="header-wrapicon1 dis-block">
+						<img src="images/icons/icon-header-01.png" class="header-icon1" alt="ICON">
+					</a>
+
+					<span class="linedivide2"></span>
+
+					<div class="header-wrapicon2">
+						<img src="images/icons/icon-header-02.png" class="header-icon1 js-show-header-dropdown" alt="ICON">
+						<span class="header-icons-noti">0</span>
+
+						<!-- Header cart noti -->
+						<div class="header-cart header-dropdown">
+							<ul class="header-cart-wrapitem">
+								<li class="header-cart-item">
+									<div class="header-cart-item-img">
+										<img src="images/item-cart-01.jpg" alt="IMG">
+									</div>
+
+									<div class="header-cart-item-txt">
+										<a href="#" class="header-cart-item-name">
+											White Shirt With Pleat Detail Back
+										</a>
+
+										<span class="header-cart-item-info">
+											1 x $19.00
+										</span>
+									</div>
+								</li>
+
+								<li class="header-cart-item">
+									<div class="header-cart-item-img">
+										<img src="images/item-cart-02.jpg" alt="IMG">
+									</div>
+
+									<div class="header-cart-item-txt">
+										<a href="#" class="header-cart-item-name">
+											Converse All Star Hi Black Canvas
+										</a>
+
+										<span class="header-cart-item-info">
+											1 x $39.00
+										</span>
+									</div>
+								</li>
+
+								<li class="header-cart-item">
+									<div class="header-cart-item-img">
+										<img src="images/item-cart-03.jpg" alt="IMG">
+									</div>
+
+									<div class="header-cart-item-txt">
+										<a href="#" class="header-cart-item-name">
+											Nixon Porter Leather Watch In Tan
+										</a>
+
+										<span class="header-cart-item-info">
+											1 x $17.00
+										</span>
+									</div>
+								</li>
+							</ul>
+
+							<div class="header-cart-total">
+								Total: $75.00
+							</div>
+
+							<div class="header-cart-buttons">
+								<div class="header-cart-wrapbtn">
+									<!-- Button -->
+									<a href="cart.html" class="flex-c-m size1 bg1 bo-rad-20 hov1 s-text1 trans-0-4">
+										View Cart
+									</a>
+								</div>
+
+								<div class="header-cart-wrapbtn">
+									<!-- Button -->
+									<a href="#" class="flex-c-m size1 bg1 bo-rad-20 hov1 s-text1 trans-0-4">
+										Check Out
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="btn-show-menu-mobile hamburger hamburger--squeeze">
+					<span class="hamburger-box">
+						<span class="hamburger-inner"></span>
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Menu Mobile -->
+		<div class="wrap-side-menu" >
+			<nav class="side-menu">
+				<ul class="main-menu">
+					<li class="item-topbar-mobile p-l-20 p-t-8 p-b-8">
+						<span class="topbar-child1">
+							Free shipping for standard order over $100
+						</span>
+					</li>
+
+					<li class="item-topbar-mobile p-l-20 p-t-8 p-b-8">
+						<div class="topbar-child2-mobile">
+							<span class="topbar-email">
+								fashe@example.com
+							</span>
+
+							<div class="topbar-language rs1-select2">
+								<select class="selection-1" name="time">
+									<option>USD</option>
+									<option>EUR</option>
+								</select>
+							</div>
+						</div>
+					</li>
+
+					<li class="item-topbar-mobile p-l-10">
+						<div class="topbar-social-mobile">
+							<a href="#" class="topbar-social-item fa fa-facebook"></a>
+							<a href="#" class="topbar-social-item fa fa-instagram"></a>
+							<a href="#" class="topbar-social-item fa fa-pinterest-p"></a>
+							<a href="#" class="topbar-social-item fa fa-snapchat-ghost"></a>
+							<a href="#" class="topbar-social-item fa fa-youtube-play"></a>
+						</div>
+					</li>
+
+					<li class="item-menu-mobile">
+						<a href="index.html">Home</a>
+						<ul class="sub-menu">
+							<li><a href="index.html">Homepage V1</a></li>
+							<li><a href="home-02.html">Homepage V2</a></li>
+							<li><a href="home-03.html">Homepage V3</a></li>
+						</ul>
+						<i class="arrow-main-menu fa fa-angle-right" aria-hidden="true"></i>
+					</li>
+
+					<li class="item-menu-mobile">
+						<a href="product.html">Shop</a>
+					</li>
+
+					<li class="item-menu-mobile">
+						<a href="product.html">Sale</a>
+					</li>
+
+					<li class="item-menu-mobile">
+						<a href="cart.html">Features</a>
+					</li>
+
+					<li class="item-menu-mobile">
+						<a href="blog.html">Blog</a>
+					</li>
+
+					<li class="item-menu-mobile">
+						<a href="about.html">About</a>
+					</li>
+
+					<li class="item-menu-mobile">
+						<a href="contact.html">Contact</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<!-- Title Page -->
+	<section class="bg-title-page p-t-40 p-b-50 flex-col-c-m" style="background-image: url(images/header-orderlist01.jpg);">
+		<h2 class="l-text2 t-center">
+			Orderlist
+		</h2>
+	</section>
+
+	<!-- Orderlist -->
+	<section class="cart bgwhite p-t-70 p-b-100">
+		<div class="container">
+			<!-- item -->
+			<div class="container-table-cart pos-relative">
+				<div class="wrap-table-shopping-cart bgwhite">
+					<table class="table-shopping-cart" id="totallist">
+						<!-- <tr class="table-head">
+							<th class="column-1">Date</th>
+							<th class="column-2">ex)2018/11/20</th>
+							<th class="column-3"></th>
+							<th class="column-4"></th>
+						</tr>
+
+						<tr class="table-row" style="padding-top: 5px; padding-bottom: 5px;">
+							<th class="column-1"></th>
+							<th class="column-2">Product</th>
+							<th class="column-3">Price</th>
+							<th class="column-4">Quantity</th>
+							<th class="column-5">Rating</th>
+						</tr>
+
+						<tr class="table-row">
+							<td class="column-1">
+								<div class="cart-img-product b-rad-4 o-f-hidden">
+									<img src="images/item-10.jpg" alt="IMG-PRODUCT">
+								</div>
+							</td>
+							<td class="column-2">Men Tshirt</td>
+							<td class="column-3">가격</td>
+							<td class="column-4">수량</td>
+							<td class="column-5">평점 입력란</td>
+						</tr>
+
+						<tr class="table-row" style="padding-top: 5px; padding-bottom: 5px;">
+							<th class="column-1"></th>
+							<th class="column-2"></th>
+							<th class="column-3"></th>
+							<th class="column-4">Total</th>
+							<th class="column-5">토탈 가격</th>
+						</tr> -->
+					</table>
+				</div>
+			</div>
+		</div>
+	</section>
+
+
+
+	<!-- Footer -->
+	<footer class="bg6 p-t-45 p-b-43 p-l-45 p-r-45">
+		<div class="t-center p-l-15 p-r-15">
+			<div class="t-center s-text8 p-t-20">
+				Copyright © 2018 All rights reserved. | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+			</div>
+		</div>
+	</footer>
+
+
+
+	<!-- Back to top -->
+	<div class="btn-back-to-top bg0-hov" id="myBtn">
+		<span class="symbol-btn-back-to-top">
+			<i class="fa fa-angle-double-up" aria-hidden="true"></i>
+		</span>
+	</div>
+
+	<!-- Container Selection -->
+	<div id="dropDownSelect1"></div>
+	<div id="dropDownSelect2"></div>
+
+	<script>
+		$('#stars li').on('mouseover', function(){
+			var onStar = parseInt($(this).data('value'), 10);
+
+			$(this).parent().children('li.star').each(function(e){
+				if (e < onStar) {
+					$(this).addClass('hover');
+				} else {
+					$(this).removeClass('hover');
+				}
+			});
+		}).on('mouseout', function(){
+			$(this).parent().children('li.star').each(function(e){
+				$(this).removeClass('hover');
+			});
+		});
+
+
+		$('#stars li a').on('click', function(){
+			var onStar = parseInt($(this).data('value'), 10);
+			var stars = $(this).parent().children('li.star');
+
+			for (i = 0; i < stars.length; i++) {
+				$(stars[i]).removeClass('selected');
+			}
+
+			for (i = 0; i < onStar; i++) {
+				$(stars[i]).addClass('selected');
+			}
+
+			var product_idx =  $('#stars input[type="htdden"]').val();
+			var ratingValue = parseInt($('#stars li.selected').last().data('value'), 10);
+
+			responseMessage(product_idx, ratingValue);
+		});
+		
+		function responseRating(product_idx, ratingValue) {
+			$.ajax({
+				url : "http://Nanugi00-env.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/buyer/rating",
+				data : {
+						"idx" : $.cookie('idx'),
+						"rating" : "[" + product_idx + ", "+ ratingValue +"]",
+						},
+				type : "POST",
+				success : function(request) {
+					location.href = "http://nanugibuyer.s3-website.ap-northeast-2.amazonaws.com/orderlist.html";
+				} 
+			});	
+		}
+	</script>
+</body>
+</html>

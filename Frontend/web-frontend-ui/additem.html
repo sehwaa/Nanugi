@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Purple Admin</title>
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="static/vendors/iconfonts/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="static/vendors/css/vendor.bundle.base.css">
+  <!-- endinject -->
+  <!-- plugin css for this page -->
+  <!-- <link rel="stylesheet" href="static/node_modules/jqvmap/dist/jqvmap.min.css" /> -->
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <link rel="stylesheet" href="static/css/style.css">
+  <!-- endinject -->
+  <link rel="shortcut icon" href="static/images/favicon.png" />
+  <!-- plugins:js -->
+  <script src="static/vendors/js/vendor.bundle.base.js"></script>
+  <script src="static/vendors/js/vendor.bundle.addons.js"></script>
+  <script src="static/vendors/js/jquery.cookie.js"></script>   
+  <!-- endinject -->
+  <!-- Plugin js for this page-->
+  <!-- End plugin js for this page-->
+  <!-- inject:js -->
+  <script src="static/js/off-canvas.js"></script>
+  <script src="static/js/misc.js"></script>
+    <script>
+        $('document').ready(function() {
+            var navStoreName = $.cookie('storeName');
+            $('#navStoreName').empty();
+            $('#navStoreName').append(navStoreName);
+
+            $('.logout').click(function() {
+                $.ajax({
+                    url : "http://nanugi00.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/user/sign/out",
+                    type : "POST",
+                    success : function(request) {
+                      alert("성공적으로 로그아웃되었습니다")
+                      location.href = '/';
+                    },
+                    error : function(request, status, error){
+                      alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $('document').ready(function() {
+            var id = $.cookie('id')
+            var sideStoreName = $.cookie('storeName');
+
+            $('#sideID').empty();
+            $('#sideStoreName').empty();
+            $('#sideID').append(id);
+            $('#sideStoreName').append(sideStoreName);
+        });
+    </script>
+  <!-- endinject -->
+  <!-- Custom js for this page-->
+  <!-- End custom js for this page-->
+  <style>
+    #prediv {
+      text-align: center;
+    }
+
+    #preview {
+      width: 65%;
+      object-fit: contain;
+    }
+
+    #cate1, #cate2, #cate3, #cate4 {
+      width:17.35%;
+      background-color: #ffffff;
+      float: left;
+      margin-right: 1%;
+    }
+
+    #imgBox, #nameBox, #priceBox {
+      color: red;
+    }
+  </style>
+  <script>
+    var sel_file;
+    var rgx1 = /\D/g;
+    var rgx2 = /(\d+)(\d{3})/; 
+
+    $('document').ready(function() {
+      //회원 번호 추가
+      var idx = $.cookie('idx');
+      $("#idx").attr("value", idx);
+
+      //파일 업로드 버튼 연결
+      $('.file-upload-browse').on('click', function() {
+        var file = $(this).parent().parent().parent().find('.file-upload-default');
+        file.trigger('click');
+      });
+
+      //파일 이름 표시 및 이미지 미리보기
+      $('.file-upload-default').on('change', function(e) {
+        $(this).parent().find('.form-control').val($(this).val().replace(/C:\\fakepath\\/i, ''));
+
+        var files = e.target.files;
+        var filesArr = Array.prototype.slice.call(files);
+
+        filesArr.forEach(function(f) {
+          if(!f.type.match("image.*")) {
+            alert("이미지 확장자만 게시 가능합니다.");
+            return;
+          }
+
+          sel_file = f;
+
+          var reader = new FileReader();
+
+          reader.onload = function(e) {
+            $("#preview").attr("src", e.target.result);
+          }
+          reader.readAsDataURL(f);
+        });
+      });
+
+      //글자수 제한
+      $("input[type='text']").keyup(function(event) {
+        var maxCnt = $(this).attr('maxlength');
+        var now = $(this).val().length;
+        var price = $(this).val()
+        
+        if(maxCnt != null) {
+          if (now == maxCnt) {
+            alert(maxCnt + "자 이내로 작성해주세요");
+          }
+        } else {
+          if (!(event.keyCode >=37 && event.keyCode<=40)) {
+            if(price.match(/[^0-9]/gi) != null) {
+              $(this).val(price.replace(/[^0-9]/gi,''));
+            }
+          }
+          price = comma(uncomma(price));
+          $(this).val(price);
+          if (now >= 10) {
+            alert("10의 자릿수 이내로 작성해주세요");
+            $(this).val('');
+          }
+        }
+      });
+      // 카테고리 분류
+      $('#cateGenarate').click(function(){
+        //빈칸 제어
+        if($.trim($('#inputImgUpload').val()) == '') {
+          $('#imgBox').empty();
+          $('#imgBox').append('대표 이미지를 추가해주세요');
+          return false;
+        } else {
+          $('#imgBox').empty();
+        }
+
+        if($.trim($('#inputProductName').val()) == '') {
+          $('#nameBox').empty();
+          $('#nameBox').append('상품명을 입력해주세요');
+          return false;
+        } else {
+          $('#nameBox').empty();
+        }
+
+        if($.trim($('#inputProductPrice').val()) == '') {
+          $('#priceBox').empty();
+          $('#priceBox').append('정상가를 입력해주세요');
+          return false;
+        } else {
+          $('#priceBox').empty();
+        }
+
+        //카테고리 추출
+        var form = $('#addItemForm')[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+          url : "http://nanugi00.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/user/reqproduct",
+          type : "POST",
+          data : formData,
+          async:false,
+          cache:false,
+          contentType: false,
+          processData: false,
+          success : function(request) {
+            //카테고리 받아와서 input에 출력
+            //상품번호도 받아와서 modify나 submit할 떄 넣어야 함
+            $('#inputImgUpload').attr('readonly', true);
+            $('#inputProductName').attr('readonly', true);
+            $('#inputProductPrice').attr('readonly', true);
+            $('#cate1').val(request.b_category);
+            $('#cate2').val(request.m_category);
+            $('#cate3').val(request.s_category);
+            $('#cate4').val(request.accurcy);
+          },
+          error : function(request, status, error) {
+            alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);                  
+          }
+        });
+      });
+      // 수정요청
+      $('#cateModify').click(function(){
+        if($('#cate1').val() == '') {
+          $('#cateBox').empty();
+          $('#cateBox').append('카테고리를 생성해주세요');
+          return false;
+        } else {
+          $('#cateBox').empty();
+          $('#finSubmit').attr('disabled', '');
+          $('#cate1').attr('disabled', false);
+          $('#cate2').attr('disabled', false);
+          $('#cate3').attr('disabled', false);
+          $('#cate4').attr('disabled', false);
+        }
+        var form = $('#addItemForm')[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+          url : "http://nanugi00.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/user/modify",
+          type : "POST",
+          data : formData,
+          async:false,
+          cache:false,
+          contentType: false,
+          processData: false,
+          success : function(request) {
+            $('#cate1').attr('disabled', true);
+            $('#cate2').attr('disabled', true);
+            $('#cate3').attr('disabled', true);
+            $('#cate4').attr('disabled', true);
+            alert("카테고리 수정 및 상품등록요청 하였습니다.")
+            location.href = 'http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html';
+          },
+          error : function(request, status, error){
+            alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+          }
+        });        
+      });
+
+      $('#finSubmit').click(function(){
+        if($('#cate1').val() == '') {
+          $('#cateBox').empty();
+          $('#cateBox').append('카테고리를 생성해주세요');
+          return false;
+        } else {
+          $('#cateBox').empty();
+          $('#cateModify').attr('disabled', '');
+          $('#cate1').attr('disabled', false);
+          $('#cate2').attr('disabled', false);
+          $('#cate3').attr('disabled', false);
+          $('#cate4').attr('disabled', false);
+        }
+        var form = $('#addItemForm')[0];
+        var formData = new FormData(form);
+
+        $.ajax({
+          url : "http://nanugi00.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/user/register",
+          type : "POST",
+          data : formData,
+          async:false,
+          cache:false,
+          contentType: false,
+          processData: false,
+          success : function(request) {
+            $('#cate1').attr('disabled', true);
+            $('#cate2').attr('disabled', true);
+            $('#cate3').attr('disabled', true);
+            $('#cate4').attr('disabled', true);
+            alert("상품등록요청 하였습니다.")
+            location.href = 'http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html';
+          },
+          error : function(request, status, error){
+            alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+          }
+        });        
+      });      
+    });
+
+    // 콤마 찍기
+    function comma(str) {
+      return str.replace(/(\d)(?=(?:\d{3})+(?!\d))/g, '$1,');
+    }
+
+    // 콤마 풀기
+    function uncomma(str) {
+      return str.replace(/[^\d]+/g, '');
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container-scroller">
+    <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+        <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+            <a class="navbar-brand brand-logo" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html"><img src="static/images/per.png" alt="logo" style="height:33px;"/></a>
+            <a class="navbar-brand brand-logo-mini" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html"><img src="static/images/per-mini.png" alt="logo" style="width: 33px;height:33px;"/></a>
+        </div>
+        <div class="navbar-menu-wrapper d-flex align-items-stretch">
+            <div class="search-field d-none d-md-block">
+                <form class="d-flex align-items-center h-100" action="#">
+                <div class="input-group">
+                    <div class="input-group-prepend bg-transparent">
+                        <i class="input-group-text border-0 mdi mdi-magnify"></i>                
+                    </div>
+                    <input type="text" class="form-control bg-transparent border-0" placeholder="Search projects">
+                </div>
+                </form>
+            </div>
+            <ul class="navbar-nav navbar-nav-right">
+                <li class="nav-item nav-profile dropdown">
+                    <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
+                        <div class="nav-profile-img">
+                            <img src="static/images/faces/man.png" alt="image" style="width: 33px;height:33px;">
+                            <span class="availability-status online"></span>             
+                        </div>
+                        <div class="nav-profile-text">
+                            <p class="mb-1 text-black" id="navStoreName"></p>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu navbar-dropdown" aria-labelledby="profileDropdown">
+                        <a class="dropdown-item" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/mypage.html">
+                        My Page
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item logout">
+                        <i class="mdi mdi-logout mr-2 text-primary"></i>
+                        Sign Out
+                        </a>
+                    </div>
+                </li>
+                <li class="nav-item d-none d-lg-block full-screen-link">
+                    <a class="nav-link">
+                        <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
+                    </a>
+                </li>
+                <li class="nav-item nav-logout d-none d-lg-block">
+                    <a class="nav-link logout">
+                        <i class="mdi mdi-power"></i>
+                    </a>
+                </li>
+            </ul>
+            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+            <span class="mdi mdi-menu"></span>
+            </button>
+        </div>
+    </nav>
+    <div class="container-fluid page-body-wrapper">
+        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+          <ul class="nav">
+            <li class="nav-item nav-profile">
+              <a href="#" class="nav-link">
+                <div class="nav-profile-image">
+                  <img src="static/images/faces/man.png" alt="profile">
+                  <span class="login-status online"></span> <!--change to offline or busy as needed-->              
+                </div>
+                <div class="nav-profile-text d-flex flex-column">
+                  <span class="font-weight-bold mb-2" id="sideStoreName"></span>
+                  <span class="text-secondary text-small" id="sideID"></span>
+                </div>
+                <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html">
+                <span class="menu-title">Dashboard</span>
+                <i class="mdi mdi-home menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/additem.html">
+                <span class="menu-title">상품 등록</span>
+                <i class="mdi mdi-format-list-bulleted menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/chkitem.html">
+                <span class="menu-title">상품 관리</span>
+                <i class="mdi mdi-table-large menu-icon"></i>
+              </a>
+            </li>
+            <!-- <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#general-pages" aria-expanded="false" aria-controls="general-pages">
+                <span class="menu-title">Sample Pages</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-medical-bag menu-icon"></i>
+              </a>
+              <div class="collapse" id="general-pages">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/blank-page.html"> Blank Page </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/login.html"> Login </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/register.html"> Register </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/error-404.html"> 404 </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/error-500.html"> 500 </a></li>
+                </ul>
+              </div>
+            </li> -->
+          </ul>
+        </nav>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="page-header">
+            <h3 class="page-title">
+              상품 등록
+            </h3>
+          </div>
+          <div class="row">
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">상품 등록 요청</h4>
+                  <p class="card-description">
+                    상품 등록을 요청할 수 있습니다. 관리자의 승인 하에 최종 게시 여부가 결정됩니다.
+                  </p>
+                  <form class="forms-sample" id="addItemForm" method="POST" action="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/additem.html">
+                    <input type="hidden" id="idx" name="idx">
+                    <div class="form-group" id="prediv">
+                      <img class="form-group" id="preview" />
+                    </div>
+                    <div class="form-group">
+                      <label>* 상품 대표 이미지</label>
+                        <input type="file" name="product_photo" class="file-upload-default">
+                      <div class="input-group col-xs-12">
+                        <input type="text" class="form-control file-upload-info" name="product_photo" disabled="" placeholder="Upload Image" id="inputImgUpload">
+                        <span class="input-group-append">
+                          <button class="file-upload-browse btn btn-gradient-primary" type="button" id="imgUpload">Upload</button>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <h6 class="font-weight-light" id="imgBox"></h6>
+                    </div>
+                    <div class="form-group">
+                      <label for="inputProductName">* 상품명</label>
+                      <input type="text" class="form-control" id="inputProductName" name="product_name" placeholder="Product Name" maxlength="60">
+                    </div>
+                    <div class="form-group">
+                      <h6 class="font-weight-light" id="nameBox"></h6>
+                    </div>
+                    <div class="form-group">
+                      <label for="inputProductPrice">* 정상가</label>
+                      <input type="text" class="form-control" id="inputProductPrice" name="product_price" placeholder="Price">
+                    </div>
+                    <div class="form-group">
+                      <h6 class="font-weight-light" id="priceBox"></h6>
+                    </div>
+                    <!-- <div class="form-group">
+                      <label for="inputProductPrice">할인가</label>
+                      <input type="text" class="form-control" id="inputProductSalePrice" name="product_saleprice" placeholder="Sale Price">
+                    </div> -->
+                    <div class="form-group">
+                      <h6 class="font-weight-light" id="saleBox"></h6>
+                    </div>
+                    <div class="form-group">
+                      <label for="cate1">* 카테고리&emsp;<span class="card-description">* 관리자의 권한 하에 카테고리가 변경될 수 있습니다.</span></label>
+                      <div>
+                        <input type="text" class="form-control" id="cate1" disabled="" name="cate_b" placeholder="대">
+                        <input type="text" class="form-control" id="cate2" disabled="" name="cate_m" placeholder="중">
+                        <input type="text" class="form-control" id="cate3" disabled="" name="cate_s" placeholder="소">
+                        <input type="text" class="form-control" id="cate4" disabled="" name="accurcy"placeholder="정확도">
+                        <button type="button" class="btn btn-primary mr-2" id="cateGenarate">Genarate</button>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <h6 class="font-weight-light" id="cateBox"></h6>
+                    </div>
+                    <button type="button" class="btn btn-primary mr-2" id="cateModify">Modify</button>
+                    <button type="button" class="btn btn-gradient-primary mr-2" id="finSubmit">Submit</button>
+                    <button type="button" class="btn btn-light" id="cate_cancel" onclick="location.href='http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html'">Cancel</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- includes:includes/_footer.html -->
+        {% include 'includes/_footer.html' %}
+        <!-- includes -->
+      </div>
+      <!-- main-panel ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+</body>
+</html>

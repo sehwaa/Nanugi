@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Purple Admin</title>
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="static/vendors/iconfonts/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="static/vendors/css/vendor.bundle.base.css">
+  <!-- endinject -->
+  <!-- plugin css for this page -->
+  <link rel="stylesheet" href="static/node_modules/jqvmap/dist/jqvmap.min.css" />
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <link rel="stylesheet" href="static/css/style.css">
+  <!-- endinject -->
+  <link rel="shortcut icon" href="static/images/favicon.png" />
+  <!-- plugins:js -->
+  <script src="static/vendors/js/vendor.bundle.base.js"></script>
+  <script src="static/vendors/js/vendor.bundle.addons.js"></script>
+  <script src="static/vendors/js/jquery.cookie.js"></script>  
+  <!-- endinject -->
+  <!-- Plugin js for this page-->
+  <!-- End plugin js for this page-->
+  <!-- inject:js -->
+  <script src="static/js/off-canvas.js"></script>
+  <script src="static/js/misc.js"></script>
+  <!-- endinject -->
+  <!-- Custom js for this page-->
+  <!-- End custom js for this page-->
+  <script>
+    $('document').ready(function() {
+
+    });
+  </script>
+  <script>
+      $('document').ready(function() {
+          var navStoreName = $.cookie('storeName');
+          $('#navStoreName').empty();
+          $('#navStoreName').append(navStoreName);
+
+          $('.logout').click(function() {
+              $.ajax({
+                  url : "http://nanugi00.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/user/sign/out",
+                  type : "POST",
+                  success : function(request) {
+                    alert("성공적으로 로그아웃되었습니다")
+                    location.href = '/';
+                  },
+                  error : function(request, status, error){
+                    alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+                  }
+              });
+          });
+      });
+  </script>
+  <script>
+      $('document').ready(function() {
+          var id = $.cookie('id')
+          var sideStoreName = $.cookie('storeName');
+
+          $('#sideID').empty();
+          $('#sideStoreName').empty();
+          $('#sideID').append(id);
+          $('#sideStoreName').append(sideStoreName);
+      });
+  </script>
+  <script>
+      var sel_file;
+      var rgx1 = /\D/g;
+      var rgx2 = /(\d+)(\d{3})/; 
+  
+      $('document').ready(function() {
+        //회원 번호 추가
+        var idx = $.cookie('idx');
+        $("#idx").attr("value", idx);
+
+        // 등록 대기 상품 조회
+        $('#fcomplete_n').click(function(){
+          var form = $('#addItemForm')[0];
+          var formData = new FormData(form);
+
+          $.ajax({
+            url : "http://nanugi00.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/user/check_n",
+            data : formData,
+            type : "POST",
+            async:false,
+            cache:false,
+            contentType: false,
+            processData: false,
+            success : function(request) {
+              var row;
+              $.each(request.product, function() {
+                row += "<tr>";
+                row += "<td>" + this.b_category +" > "+ this.m_category +" > "+ this.s_category +"</td>";
+                row += "<td>" + this.product_name + "</td>";
+                row += '<td class="text-danger">' + this.accuarcy + "</td>";
+                row += "</tr>";
+              });
+              $('#list').html(row)
+            },
+            error : function(request, status, error){
+              alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+            }
+          });        
+        });
+
+        // 등록 완료 상품 조회
+        $('#fcomplete_y').click(function(){
+          var form = $('#addItemForm')[0];
+          var formData = new FormData(form);
+
+          $.ajax({
+            url : "http://nanugi00.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/user/check_y",
+            data : formData,
+            type : "POST",
+            async:false,
+            cache:false,
+            contentType: false,
+            processData: false,
+            success : function(request) {
+              var row;
+              $.each(request.product, function() {
+                row += "<tr>";
+                row += "<td>" + this.b_category +" > "+ this.m_category +" > "+ this.s_category +"</td>";
+                row += "<td>" + this.product_name + "</td>";
+                row += '<td class="text-danger">' + this.accuarcy + "</td>";
+                row += "</tr>";
+              });
+              $('#list').html(row)
+            },
+            error : function(request, status, error){
+              alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+            }
+          });        
+        });
+      });
+  </script>
+</head>
+
+<body>
+  <div class="container-scroller">
+       <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+            <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+                <a class="navbar-brand brand-logo" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html"><img src="static/images/per.png" alt="logo" style="height:33px;"/></a>
+                <a class="navbar-brand brand-logo-mini" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html"><img src="static/images/per-mini.png" alt="logo" style="width: 33px;height:33px;"/></a>
+            </div>
+            <div class="navbar-menu-wrapper d-flex align-items-stretch">
+                <div class="search-field d-none d-md-block">
+                    <form class="d-flex align-items-center h-100" action="#">
+                    <div class="input-group">
+                        <div class="input-group-prepend bg-transparent">
+                            <i class="input-group-text border-0 mdi mdi-magnify"></i>                
+                        </div>
+                        <input type="text" class="form-control bg-transparent border-0" placeholder="Search projects">
+                    </div>
+                    </form>
+                </div>
+                <ul class="navbar-nav navbar-nav-right">
+                    <li class="nav-item nav-profile dropdown">
+                        <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
+                            <div class="nav-profile-img">
+                                <img src="static/images/faces/man.png" alt="image" style="width: 33px;height:33px;">
+                                <span class="availability-status online"></span>             
+                            </div>
+                            <div class="nav-profile-text">
+                                <p class="mb-1 text-black" id="navStoreName"></p>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu navbar-dropdown" aria-labelledby="profileDropdown">
+                            <a class="dropdown-item" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/mypage.html">
+                            My Page
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item logout">
+                            <i class="mdi mdi-logout mr-2 text-primary"></i>
+                            Sign Out
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item d-none d-lg-block full-screen-link">
+                        <a class="nav-link">
+                            <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item nav-logout d-none d-lg-block">
+                        <a class="nav-link logout">
+                            <i class="mdi mdi-power"></i>
+                        </a>
+                    </li>
+                </ul>
+                <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+                <span class="mdi mdi-menu"></span>
+                </button>
+            </div>
+        </nav>
+    <div class="container-fluid page-body-wrapper">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar">
+          <ul class="nav">
+            <li class="nav-item nav-profile">
+              <a href="#" class="nav-link">
+                <div class="nav-profile-image">
+                  <img src="static/images/faces/man.png" alt="profile">
+                  <span class="login-status online"></span> <!--change to offline or busy as needed-->              
+                </div>
+                <div class="nav-profile-text d-flex flex-column">
+                  <span class="font-weight-bold mb-2" id="sideStoreName"></span>
+                  <span class="text-secondary text-small" id="sideID"></span>
+                </div>
+                <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html">
+                <span class="menu-title">Dashboard</span>
+                <i class="mdi mdi-home menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/additem.html">
+                <span class="menu-title">상품 등록</span>
+                <i class="mdi mdi-format-list-bulleted menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/chkitem.html">
+                <span class="menu-title">상품 관리</span>
+                <i class="mdi mdi-table-large menu-icon"></i>
+              </a>
+            </li>
+            <!-- <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#general-pages" aria-expanded="false" aria-controls="general-pages">
+                <span class="menu-title">Sample Pages</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-medical-bag menu-icon"></i>
+              </a>
+              <div class="collapse" id="general-pages">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/blank-page.html"> Blank Page </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/login.html"> Login </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/register.html"> Register </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/error-404.html"> 404 </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/error-500.html"> 500 </a></li>
+                </ul>
+              </div>
+            </li> -->
+          </ul>
+        </nav>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="page-header">
+            <h3 class="page-title">
+              상품 관리
+            </h3>
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="chkitem">상품 관리</a></li>
+                <li class="breadcrumb-item active" aria-current="page">등록 상품 조회</li>
+              </ol>
+            </nav>
+          </div>
+          <div class="row">
+            <div class="col-lg-12 grid-margin">
+              <div class="card">
+                <div class="card-body">
+                  <form class="forms-sample" id="addItemForm" method="POST" action="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/chkitem.html">
+                    <input type="hidden" id="idx" name="idx">
+                    <button type="button" class="btn btn-primary mr-2" id="fcomplete_n">등록 대기 상품 조회</button>
+                    <button type="button" class="btn btn-primary mr-2" id="fcomplete_y">등록 완료 상품 조회</button>
+                    <p class="card-description">
+                      현재까지 등록 요청한 상품들의 진행 상태를 조회할 수 있습니다.
+                    </p>
+                    <div class="table-responsive">
+                      <!-- <select>
+                        <option>대분류</option>
+                        <option>대분류값1</option>
+                        <option>대분류값2</option>
+                      </select>
+                      <select>
+                        <option>중분류</option>
+                        <option>중분류값1</option>
+                        <option>중분류값2</option>
+                      </select>
+                      <select>
+                        <option>소분류</option>
+                        <option>소분류값1</option>
+                        <option>소분류값2</option>
+                      </select> -->
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Category</th>
+                            <th>Product</th>
+                            <th>Status</th>
+                            <!-- <th>Accept Date</th> -->
+                          </tr>
+                        </thead>
+                        <tbody id='list'>
+                          <tr>
+                            <td>등록된 상품이 없습니다.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <!-- <div class="card">
+                        <div class="card-body">
+                            <div style="width:30%; margin: auto;">
+                              <div class="search-field d-none d-md-block">
+                                <form class="d-flex align-items-center h-100" action="#">
+                                  <div class="input-group">
+                                    <div class="input-group-prepend bg-transparent">
+                                      <i class="input-group-text border-0 mdi mdi-magnify"></i>                
+                                    </div>
+                                  </div>
+                                </form>
+                              </div>
+                            </div>
+                            <br/>
+                          <nav>
+                            <ul class="pagination justify-content-center pagination-success">
+                              <li class="page-item"><a class="page-link" href="#"><i class="mdi mdi-chevron-left"></i></a></li>
+                              <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                              <li class="page-item"><a class="page-link" href="#">2</a></li>
+                              <li class="page-item"><a class="page-link" href="#">3</a></li>
+                              <li class="page-item"><a class="page-link" href="#">4</a></li>
+                              <li class="page-item"><a class="page-link" href="#"><i class="mdi mdi-chevron-right"></i></a></li>
+                            </ul>
+                          </nav>
+                        </div>
+                      </div> -->
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <footer class="footer">
+          <div class="d-sm-flex justify-content-center justify-content-sm-between">
+            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2017 <a href="https://www.bootstrapdash.com/" target="_blank">Bootstrap Dash</a>. All rights reserved.</span>
+            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
+          </div>
+        </footer>
+      </div>
+      <!-- main-panel ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+</body>
+
+</html>

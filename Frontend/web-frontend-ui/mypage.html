@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Purple Admin</title>
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="static/vendors/iconfonts/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="static/vendors/css/vendor.bundle.base.css">
+  <!-- endinject -->
+  <!-- plugin css for this page -->
+  <link rel="stylesheet" href="static/node_modules/jqvmap/dist/jqvmap.min.css" />
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <link rel="stylesheet" href="static/css/style.css">
+  <!-- endinject -->
+  <link rel="shortcut icon" href="static/images/favicon.png" />
+  <!-- plugins:js -->
+  <script src="static/vendors/js/vendor.bundle.base.js"></script>
+  <script src="static/vendors/js/vendor.bundle.addons.js"></script>
+  <!-- endinject -->
+  <!-- Plugin js for this page-->
+  <!-- End plugin js for this page-->
+  <!-- inject:js -->
+  <script src="static/js/off-canvas.js"></script>
+  <script src="static/js/misc.js"></script>
+    <script>
+        $('document').ready(function() {
+            var navStoreName = $.cookie('storeName');
+            $('#navStoreName').empty();
+            $('#navStoreName').append(navStoreName);
+
+            $('.logout').click(function() {
+                $.ajax({
+                    url : "http://nanugi00.kte3qwhdpp.ap-northeast-2.elasticbeanstalk.com/user/sign/out",
+                    type : "POST",
+                    success : function(request) {
+                      alert("성공적으로 로그아웃되었습니다")
+                      location.href = '/';
+                    },
+                    error : function(request, status, error){
+                      alert("code:" + request.status + "\n" + "message:" + request.responseText + "\n" + "error:" + error);
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $('document').ready(function() {
+            var id = $.cookie('id')
+            var sideStoreName = $.cookie('storeName');
+
+            $('#sideID').empty();
+            $('#sideStoreName').empty();
+            $('#sideID').append(id);
+            $('#sideStoreName').append(sideStoreName);
+        });
+    </script>
+  <!-- endinject -->
+  <!-- Custom js for this page-->
+  <!-- End custom js for this page-->
+</head>
+
+<body>
+  <div class="container-scroller">
+    <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+        <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+            <a class="navbar-brand brand-logo" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html"><img src="static/images/per.png" alt="logo" style="height:33px;"/></a>
+            <a class="navbar-brand brand-logo-mini" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html"><img src="static/images/per-mini.png" alt="logo" style="width: 33px;height:33px;"/></a>
+        </div>
+        <div class="navbar-menu-wrapper d-flex align-items-stretch">
+            <div class="search-field d-none d-md-block">
+                <form class="d-flex align-items-center h-100" action="#">
+                <div class="input-group">
+                    <div class="input-group-prepend bg-transparent">
+                        <i class="input-group-text border-0 mdi mdi-magnify"></i>                
+                    </div>
+                    <input type="text" class="form-control bg-transparent border-0" placeholder="Search projects">
+                </div>
+                </form>
+            </div>
+            <ul class="navbar-nav navbar-nav-right">
+                <li class="nav-item nav-profile dropdown">
+                    <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
+                        <div class="nav-profile-img">
+                            <img src="static/images/faces/man.png" alt="image" style="width: 33px;height:33px;">
+                            <span class="availability-status online"></span>             
+                        </div>
+                        <div class="nav-profile-text">
+                            <p class="mb-1 text-black" id="navStoreName"></p>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu navbar-dropdown" aria-labelledby="profileDropdown">
+                        <a class="dropdown-item" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/mypage.html">
+                        My Page
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item logout">
+                        <i class="mdi mdi-logout mr-2 text-primary"></i>
+                        Sign Out
+                        </a>
+                    </div>
+                </li>
+                <li class="nav-item d-none d-lg-block full-screen-link">
+                    <a class="nav-link">
+                        <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
+                    </a>
+                </li>
+                <li class="nav-item nav-logout d-none d-lg-block">
+                    <a class="nav-link logout">
+                        <i class="mdi mdi-power"></i>
+                    </a>
+                </li>
+            </ul>
+            <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+            <span class="mdi mdi-menu"></span>
+            </button>
+        </div>
+    </nav>
+    <div class="container-fluid page-body-wrapper">
+        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+          <ul class="nav">
+            <li class="nav-item nav-profile">
+              <a href="#" class="nav-link">
+                <div class="nav-profile-image">
+                  <img src="static/images/faces/man.png" alt="profile">
+                  <span class="login-status online"></span> <!--change to offline or busy as needed-->              
+                </div>
+                <div class="nav-profile-text d-flex flex-column">
+                  <span class="font-weight-bold mb-2" id="sideStoreName"></span>
+                  <span class="text-secondary text-small" id="sideID"></span>
+                </div>
+                <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="http://web-frontend-ui.s3-website.ap-northeast-2.amazonaws.com/index.html">
+                <span class="menu-title">Dashboard</span>
+                <i class="mdi mdi-home menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/additem">
+                <span class="menu-title">상품 등록</span>
+                <i class="mdi mdi-format-list-bulleted menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/chkitem">
+                <span class="menu-title">상품 관리</span>
+                <i class="mdi mdi-table-large menu-icon"></i>
+              </a>
+            </li>
+            <!-- <li class="nav-item">
+              <a class="nav-link" data-toggle="collapse" href="#general-pages" aria-expanded="false" aria-controls="general-pages">
+                <span class="menu-title">Sample Pages</span>
+                <i class="menu-arrow"></i>
+                <i class="mdi mdi-medical-bag menu-icon"></i>
+              </a>
+              <div class="collapse" id="general-pages">
+                <ul class="nav flex-column sub-menu">
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/blank-page.html"> Blank Page </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/login.html"> Login </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/register.html"> Register </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/error-404.html"> 404 </a></li>
+                  <li class="nav-item"> <a class="nav-link" href="pages/samples/error-500.html"> 500 </a></li>
+                </ul>
+              </div>
+            </li> -->
+          </ul>
+        </nav>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="page-header">
+            <h3 class="page-title">
+              Basic Tables
+            </h3>
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Tables</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Basic tables</li>
+              </ol>
+            </nav>
+          </div>
+          <div class="row">
+            <div class="col-lg-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">테이블 이름</h4>
+                  <p class="card-description">
+                    테이블 설명
+                  </p>
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Model</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Image01</td>
+                        <td>Jacob</td>
+                        <td>Photoshop</td>
+                        <td class="text-danger"> 28.76% <i class="mdi mdi-arrow-down"></i></td>
+                        <td><label class="badge badge-danger">Pending</label></td>
+                      </tr>
+                      <tr>
+                        <td>Image01</td>
+                        <td>Messsy</td>
+                        <td>Flash</td>
+                        <td class="text-danger"> 21.06% <i class="mdi mdi-arrow-down"></i></td>
+                        <td><label class="badge badge-warning">In progress</label></td>
+                      </tr>
+                      <tr>
+                        <td>Image01</td>
+                        <td>John</td>
+                        <td>Premier</td>
+                        <td class="text-danger"> 35.00% <i class="mdi mdi-arrow-down"></i></td>
+                        <td><label class="badge badge-info">Fixed</label></td>
+                      </tr>
+                      <tr>
+                        <td>Image01</td>
+                        <td>Peter</td>
+                        <td>After effects</td>
+                        <td class="text-success"> 82.00% <i class="mdi mdi-arrow-up"></i></td>
+                        <td><label class="badge badge-success">Completed</label></td>
+                      </tr>
+                      <tr>
+                        <td>Image01</td>
+                        <td>Dave</td>
+                        <td>53275535</td>
+                        <td class="text-success"> 98.05% <i class="mdi mdi-arrow-up"></i></td>
+                        <td><label class="badge badge-warning">In progress</label></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <footer class="footer">
+          <div class="d-sm-flex justify-content-center justify-content-sm-between">
+            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2017 <a href="https://www.bootstrapdash.com/" target="_blank">Bootstrap Dash</a>. All rights reserved.</span>
+            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="mdi mdi-heart text-danger"></i></span>
+          </div>
+        </footer>
+      </div>
+      <!-- main-panel ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+</body>
+
+</html>
