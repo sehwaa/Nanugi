@@ -24,7 +24,7 @@ redis==3.0.1
 s3transfer==0.1.13
 six==1.12.0
 SQLAlchemy==1.2.16
-urllib3==1.24.1
+urllib3==1.26.5
 Werkzeug==0.14.1
 nltk==3.3
 pandas==0.23.0
