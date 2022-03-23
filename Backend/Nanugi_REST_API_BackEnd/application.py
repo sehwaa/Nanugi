@@ -52,8 +52,8 @@ application.config['FILE_CONTENT_TYPES'] = {
     'jpeg' : 'image/jpeg',
     'png' : 'image/png'
 }
-application.config['AWS_ACCESS_KEY_ID'] = 'AKIAJYUUY7OHL46KXSPA'
-application.config['AWS_SECRET_ACCESS_KEY'] = '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'
+application.config['AWS_ACCESS_KEY_ID'] = ''
+application.config['AWS_SECRET_ACCESS_KEY'] = ''
 s3 = FlaskS3(application)
 
 mysql.init_app(application)
